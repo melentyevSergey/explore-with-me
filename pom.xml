@@ -12,6 +12,11 @@
 
 	<name>Explore With Me</name>
 
+	<modules>
+		<module>ewm-stats-service</module>
+		<module>ewm-main-service</module>
+	</modules>
+
 	<groupId>ru.practicum</groupId>
 	<artifactId>explore-with-me</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -22,9 +27,85 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-json</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>1.5.3.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.3.8</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+	</dependencies>
+
 	<build>
 		<pluginManagement>
 			<plugins>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.1</version>
+					<configuration>
+						<source>11</source>
+						<target>11</target>
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+								<version>${lombok.version}</version>
+							</path>
+							<path>
+								<groupId>org.mapstruct</groupId>
+								<artifactId>mapstruct-processor</artifactId>
+								<version>1.5.3.Final</version>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
@@ -34,6 +115,8 @@
 						</systemPropertyVariables>
 					</configuration>
 				</plugin>
+
+
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
@@ -60,6 +143,7 @@
 						</dependency>
 					</dependencies>
 				</plugin>
+
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
 					<artifactId>spotbugs-maven-plugin</artifactId>
@@ -76,6 +160,7 @@
 						</execution>
 					</executions>
 				</plugin>
+
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
@@ -144,8 +229,11 @@
 						</execution>
 					</executions>
 				</plugin>
+
 			</plugins>
 		</pluginManagement>
+
+
 	</build>
 	<profiles>
 		<profile>
