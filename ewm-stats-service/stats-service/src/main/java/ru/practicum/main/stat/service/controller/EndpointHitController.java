@@ -20,11 +20,6 @@ public class EndpointHitController {
 
     private final EndpointHitService service;
 
-    @GetMapping(path = "/test")
-    public String test() {
-        return "Привет из стата";
-    }
-
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/hit")
     public EndpointHitDto hit(@Valid @RequestBody EndpointHitDto endpointHitDto) {
