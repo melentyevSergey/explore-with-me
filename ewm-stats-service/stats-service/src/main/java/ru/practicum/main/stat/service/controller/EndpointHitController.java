@@ -24,15 +24,22 @@ public class EndpointHitController {
     @PostMapping(path = "/hit")
     public EndpointHitDto hit(@Valid @RequestBody EndpointHitDto endpointHitDto) {
         log.debug("Создание запроса {}", endpointHitDto);
-        endpointHitDto.setTimestamp(LocalDateTime.now());
         return service.addHit(endpointHitDto);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(path = "/hits")
+    public List<EndpointHitDto> hits(@Valid @RequestBody List<EndpointHitDto> endpointHitDto) {
+        log.debug("Создание запроса {}", endpointHitDto);
+        return service.addHits(endpointHitDto);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
     @GetMapping(path = "/stats")
-    public List<ViewStats> stats(@RequestParam(name = "start") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
-                                 @RequestParam(name = "end") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
-                                 @RequestParam(name = "uris", required = false) List<String> uris,
-                                 @RequestParam(name = "unique", defaultValue = "false") boolean unique) {
+    public List<ViewStats> stats(@RequestParam(name = "start")  @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+                                 @RequestParam(name = "end")    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
+                                 @RequestParam(name = "uris",   required = false) List<String> uris,
+                                 @RequestParam(name = "unique", defaultValue = "false") Boolean unique) {
         log.debug("Попытка получить статистику по запросу {}", uris);
         return service.stats(start, end, uris, unique);
     }

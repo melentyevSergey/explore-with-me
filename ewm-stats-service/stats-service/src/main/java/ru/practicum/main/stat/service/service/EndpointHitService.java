@@ -10,5 +10,7 @@ public interface EndpointHitService {
 
     EndpointHitDto addHit(EndpointHitDto hitDto);
 
-    List<ViewStats> stats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique);
+    List<ViewStats> stats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique);
+
+    List<EndpointHitDto> addHits(List<EndpointHitDto> endpointHitDto);
 }
