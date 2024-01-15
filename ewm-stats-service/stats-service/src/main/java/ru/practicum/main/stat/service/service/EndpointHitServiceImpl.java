@@ -32,6 +32,7 @@ public class EndpointHitServiceImpl implements EndpointHitService {
     }
 
     @Override
+    @Transactional
     public List<ViewStats> stats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
         List<ViewStats> list = new ArrayList<>();
 
