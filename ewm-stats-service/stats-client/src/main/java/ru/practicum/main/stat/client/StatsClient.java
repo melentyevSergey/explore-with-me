@@ -9,34 +9,65 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.main.stat.dto.EndpointHitDto;
 
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class StatsClient extends BaseClient {
+    @Value("${stats-server.url}")
+    private String serverUrl;
+
+    @Value("${main-app.name}")
+    private String appMain;
+
     @Autowired
-    public StatsClient(@Value("${stats-server.url}") String serverUrl, RestTemplateBuilder builder) {
+    public StatsClient(RestTemplateBuilder builder) {
         super(
                 builder
-                        .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
+                        .uriTemplateHandler(new DefaultUriBuilderFactory())
                         .requestFactory(HttpComponentsClientHttpRequestFactory::new)
                         .build()
         );
     }
 
-    public ResponseEntity<Object> hit(EndpointHitDto hitDto) {
-        return post("/hit", null, null, hitDto);
+    public void hit(HttpServletRequest request) {
+        EndpointHitDto hitDto = EndpointHitDto.builder()
+                .app(appMain)
+                .uri(request.getRequestURI())
+                .ip(request.getRemoteAddr())
+                .timestamp(LocalDateTime.now())
+                .build();
+        post(serverUrl + "/hit", hitDto);
+    }
+
+    public void hits(List<Integer> events, HttpServletRequest request) {
+        List<EndpointHitDto> hitsDto = new ArrayList<>();
+
+        for (Integer eventId : events) {
+            hitsDto.add(EndpointHitDto.builder()
+                    .app(appMain)
+                    .uri("/events/" + eventId)
+                    .ip(request.getRemoteAddr())
+                    .timestamp(LocalDateTime.now())
+                    .build());
+        }
+        post(serverUrl + "/hits", hitsDto);
     }
 
     public ResponseEntity<Object> stats(String start,
                                         String end,
-                                        String[] uris,
-                                        boolean unique) {
+                                        String uris,
+                                        Boolean unique) {
         Map<String, Object> parameters = Map.of(
                 "start", start,
                 "end", end,
                 "uris", uris,
                 "unique", unique
         );
-        return patch("/stats?start={start}&end={end}&uris={uris}&unique={unique}", null, parameters, null);
+
+        return get(serverUrl + "/stats?start={start}&end={end}&uris={uris}&unique={unique}", parameters);
     }
 }
