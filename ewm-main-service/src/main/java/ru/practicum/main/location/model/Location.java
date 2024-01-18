@@ -1,11 +1,13 @@
 package ru.practicum.main.location.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Getter
-@Setter
+@Data
 @Builder
 @Entity
 @Table(name = "locations")

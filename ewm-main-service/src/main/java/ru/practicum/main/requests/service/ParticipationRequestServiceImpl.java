@@ -11,8 +11,6 @@ import ru.practicum.main.requests.mapper.ParticipationRequestMapper;
 import ru.practicum.main.requests.model.ParticipationRequest;
 import ru.practicum.main.requests.model.ParticipationRequestStatus;
 import ru.practicum.main.requests.repository.ParticipationRequestRepository;
-import ru.practicum.main.user.model.User;
-import ru.practicum.main.utility.Utility;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,19 +22,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ParticipationRequestServiceImpl implements ParticipationRequestService {
     private final ParticipationRequestRepository repository;
-    private final Utility utility;
+    private final ParticipationRequestVerifier verifier;
     private final EventRepository eventRepository;
     private final ParticipationRequestMapper mapper;
 
     @Override
     @Transactional
     public ParticipationRequestDto createRequestsByUserOtherEvents(Integer userId, Integer eventId) {
-        User user = utility.checkUser(userId);
-        Event event = utility.checkAbilityToParticipationCreateRequest(eventId, userId);
+        Event event = verifier.checkAbilityToParticipationCreateRequest(eventId, userId);
         ParticipationRequest participationRequest = ParticipationRequest.builder()
                 .created(LocalDateTime.now())
                 .event(event)
-                .requester(user)
+                .requester(verifier.checkUser(userId))
                 .build();
 
         if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
@@ -59,9 +56,8 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     }
 
     @Override
-    @Transactional
     public ParticipationRequestDto cancelRequestsByUserOtherEvents(Integer userId, Integer requestId) {
-        ParticipationRequest request = utility.checkParticipationRequest(requestId, userId);
+        ParticipationRequest request = verifier.checkParticipationRequest(requestId, userId);
         if (request.getState().equals(ParticipationRequestStatus.CONFIRMED)) {
             Event event = request.getEvent();
             event.setConfirmedRequests(event.getConfirmedRequests() - 1);
