@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 import ru.practicum.main.compilation.dto.CompilationDto;
 import ru.practicum.main.compilation.dto.NewCompilationDto;
 import ru.practicum.main.compilation.model.Compilation;
-import ru.practicum.main.event.service.EventService;
+import ru.practicum.main.event.service.EventVerifier;
 
 @Service
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = {EventService.class})
+        uses = {EventVerifier.class})
 public interface CompilationMapper {
     CompilationMapper INSTANCE = Mappers.getMapper(CompilationMapper.class);
 

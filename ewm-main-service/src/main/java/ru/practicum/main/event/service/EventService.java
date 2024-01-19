@@ -1,7 +1,6 @@
 package ru.practicum.main.event.service;
 
 import ru.practicum.main.event.dto.*;
-import ru.practicum.main.event.model.Event;
 import ru.practicum.main.requests.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.main.requests.dto.EventRequestStatusUpdateResult;
 import ru.practicum.main.requests.dto.ParticipationRequestDto;
@@ -18,8 +17,6 @@ public interface EventService {
     List<EventShortDto> getEventsByUser(Integer userId, Integer from, Integer size);
 
     EventDto getEventById(Integer eventId, HttpServletRequest request);
-
-    List<Event> findEventsByIds(List<Integer> eventIds);
 
     List<EventShortDto> getEvents(String text, List<Integer> categories, Boolean paid,
                                   LocalDateTime rangeStart, LocalDateTime rangeEnd,

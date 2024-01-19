@@ -1,10 +1,13 @@
 package ru.practicum.main.event.service;
 
+import com.google.gson.Gson;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.category.mapper.CategoryMapper;
@@ -28,15 +31,17 @@ import ru.practicum.main.requests.mapper.ParticipationRequestMapper;
 import ru.practicum.main.requests.model.ParticipationRequest;
 import ru.practicum.main.requests.model.ParticipationRequestStatus;
 import ru.practicum.main.requests.repository.ParticipationRequestRepository;
+import ru.practicum.main.stat.client.StatsClient;
+import ru.practicum.main.stat.dto.ViewStats;
 import ru.practicum.main.utility.Filter;
 import ru.practicum.main.utility.Page;
 import ru.practicum.main.utility.QPredicates;
-import ru.practicum.main.utility.Utility;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,12 +50,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
-    private final Utility utility;
+    private final EventVerifier verifier;
     private final LocationService locationService;
     private final EventMapper eventMapper;
     private final ParticipationRequestRepository requestRepository;
     private final ParticipationRequestMapper requestMapper;
     private final CategoryMapper categoryMapper;
+    private final StatsClient client;
+    private final Gson gson = new Gson();
 
     @Override
     @Transactional
@@ -61,9 +68,9 @@ public class EventServiceImpl implements EventService {
 
         Event event = eventMapper.toEntity(
                 newEventDto,
-                utility.checkUser(userId),
-                utility.checkCategory(newEventDto.getCategory()),
-                utility.validTimeCreatedOn(LocalDateTime.now(), newEventDto.getEventDate(), 2));
+                verifier.checkUser(userId),
+                verifier.checkCategory(newEventDto.getCategory()),
+                verifier.validTimeCreatedOn(LocalDateTime.now(), newEventDto.getEventDate(), 2));
 
         event = eventRepository.save(event);
         return eventMapper.toDto(event);
@@ -73,15 +80,15 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventDto getEventByUserFullInfo(Integer userId, Integer eventId) {
         return eventMapper.toDto(eventRepository.findEventByIdAndInitiator_Id(
-                        utility.checkEvent(eventId).getId(),
-                        utility.checkUser(userId).getId())
+                        verifier.checkEvent(eventId).getId(),
+                        verifier.checkUser(userId).getId())
                 .orElseThrow(() -> new NotFoundException("Вероятно что данное событие создавали не вы")));
     }
 
     @Override
     public List<EventShortDto> getEventsByUser(Integer userId, Integer from, Integer size) {
         Pageable page = Page.paged(from, size);
-        return eventRepository.findEventsByInitiator_Id(utility.checkUser(userId).getId(), page).stream()
+        return eventRepository.findEventsByInitiator_Id(verifier.checkUser(userId).getId(), page).stream()
                 .map(eventMapper::toShortDto)
                 .collect(Collectors.toList());
     }
@@ -89,15 +96,10 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventDto getEventById(Integer eventId, HttpServletRequest request) {
-        Event event = utility.checkPublishedEvent(eventId);
-        event.setViews(utility.getView(event));
+        Event event = verifier.checkPublishedEvent(eventId);
+        event.setViews(getView(event));
         eventRepository.save(event);
         return eventMapper.toDto(event);
-    }
-
-    @Override
-    public List<Event> findEventsByIds(List<Integer> eventIds) {
-        return utility.checkEvents(eventIds);
     }
 
     @Override
@@ -130,9 +132,9 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событий не найдено");
         }
 
-        utility.hits(events, request);
+        hits(events, request);
 
-        events.forEach(event -> event.setViews(utility.getView(event)));
+        events.forEach(event -> event.setViews(getView(event)));
 
         eventRepository.saveAll(events);
 
@@ -192,7 +194,7 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Событие не найдено или недоступно");
         }
 
-        Event event = utility.checkEvent(eventId);
+        Event event = verifier.checkEvent(eventId);
 
         for (ParticipationRequest request : requestList) {
             boolean isUnlimitedParticipantsOrModerationDisabled = (request.getEvent().getParticipantLimit() == 0) ||
@@ -239,11 +241,11 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventDto changeEventsByUser(Integer userId, Integer eventId, UpdateEventUserRequest updateEventUserRequest) {
-        Event event = utility.checkEvent(eventId);
+        Event event = verifier.checkEvent(eventId);
 
         if (event.getState().equals(EventStatus.PENDING) || event.getState().equals(EventStatus.CANCELED)) {
             if (updateEventUserRequest.getEventDate() != null) {
-                utility.validTimeEventDate(LocalDateTime.now(), updateEventUserRequest.getEventDate(), 2);
+                verifier.validTimeEventDate(LocalDateTime.now(), updateEventUserRequest.getEventDate(), 2);
                 event.setEventDate(updateEventUserRequest.getEventDate());
             }
             if (updateEventUserRequest.getAnnotation() != null) {
@@ -291,13 +293,13 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventDto changeEvents(Integer eventId, UpdateEventAdminRequest updateEventAdminRequest) {
-        Event event = utility.checkEvent(eventId);
+        Event event = verifier.checkEvent(eventId);
 
         if (updateEventAdminRequest.getAnnotation() != null) {
             event.setAnnotation(updateEventAdminRequest.getAnnotation());
         }
         if (updateEventAdminRequest.getCategory() != null) {
-            Category category = utility.checkCategory(updateEventAdminRequest.getCategory());
+            Category category = verifier.checkCategory(updateEventAdminRequest.getCategory());
             event.setCategory(category);
         }
         if (updateEventAdminRequest.getDescription() != null) {
@@ -326,7 +328,7 @@ public class EventServiceImpl implements EventService {
         if (updateEventAdminRequest.getStateAction() != null) {
             if (updateEventAdminRequest.getStateAction().equals(StateActionAdmin.PUBLISH_EVENT)) {
                 if (event.getState().equals(EventStatus.PENDING)) {
-                    event.setPublishedOn(utility.validTimePublication(LocalDateTime.now(), event.getEventDate(), 1));
+                    event.setPublishedOn(verifier.validTimePublication(LocalDateTime.now(), event.getEventDate(), 1));
                     event.setState(EventStatus.PUBLISHED);
                     return eventMapper.toDto(eventRepository.save(event));
                 } else {
@@ -344,9 +346,9 @@ public class EventServiceImpl implements EventService {
         }
         if (updateEventAdminRequest.getEventDate() != null) {
             if (event.getPublishedOn() != null) {
-                event.setEventDate(utility.validTimeEventDate(event.getPublishedOn(), updateEventAdminRequest.getEventDate(), 1));
+                event.setEventDate(verifier.validTimeEventDate(event.getPublishedOn(), updateEventAdminRequest.getEventDate(), 1));
             } else {
-                event.setEventDate(utility.validTimeEventDate(LocalDateTime.now(), updateEventAdminRequest.getEventDate(), 1));
+                event.setEventDate(verifier.validTimeEventDate(LocalDateTime.now(), updateEventAdminRequest.getEventDate(), 1));
             }
         }
         log.debug("Событие отредактировано");
@@ -378,6 +380,29 @@ public class EventServiceImpl implements EventService {
         } else {
             return filter.getRangeStart();
         }
+    }
+
+    private Integer getView(Event event) {
+        ResponseEntity<Object> response = client.stats(event.getCreatedOn().toString().replace("T", " ").substring(0, 19),
+                event.getEventDate().toString().replace("T", " ").substring(0, 19),
+                "/events/" + event.getId(),
+                true);
+
+        if (response.getStatusCode().equals(HttpStatus.OK)) {
+            String body = Objects.requireNonNull(response.getBody()).toString()
+                    .replace("[{", "{\"")
+                    .replace("}]", "\"}")
+                    .replace("=", "\":\"")
+                    .replace(", ", "\",\"");
+
+            ViewStats viewStats = gson.fromJson(body, ViewStats.class);
+            return viewStats.getHits().intValue();
+        }
+        return event.getViews();
+    }
+
+    private void hits(List<Event> events, HttpServletRequest request) {
+        client.hits(events.stream().map(Event::getId).collect(Collectors.toList()), request);
     }
 
 }
