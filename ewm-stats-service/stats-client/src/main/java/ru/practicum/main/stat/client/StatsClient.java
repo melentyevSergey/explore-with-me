@@ -54,6 +54,7 @@ public class StatsClient extends BaseClient {
                     .timestamp(LocalDateTime.now())
                     .build());
         }
+
         post(serverUrl + "/hits", hitsDto);
     }
 
