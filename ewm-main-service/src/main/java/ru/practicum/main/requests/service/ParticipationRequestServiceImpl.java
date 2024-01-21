@@ -56,6 +56,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto cancelRequestsByUserOtherEvents(Integer userId, Integer requestId) {
         ParticipationRequest request = verifier.checkParticipationRequest(requestId, userId);
         if (request.getState().equals(ParticipationRequestStatus.CONFIRMED)) {

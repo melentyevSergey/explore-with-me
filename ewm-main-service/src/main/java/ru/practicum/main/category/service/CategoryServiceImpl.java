@@ -53,7 +53,6 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    @Transactional
     public List<CategoryDto> getCategories(Integer from, Integer size) {
         Pageable page = paged(from, size);
         return categoryRepository.findAll(page).stream()
