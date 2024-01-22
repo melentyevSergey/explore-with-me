@@ -27,7 +27,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundException(final NotFoundException e) {
-        log.debug("The required object was not found", e);
+        log.debug("Запрашиваемый объект не найден", e);
         return ApiError.builder()
                 .message(e.getMessage())
                 .reason("The required object was not found.")
@@ -51,7 +51,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleConflictException(final ConflictException e) {
-        log.debug("Integrity constraint has been violated", e);
+        log.debug("Нарушена целостность связи в таблице", e);
         return ApiError.builder()
                 .message(e.getMessage())
                 .reason("Integrity constraint has been violated.")

@@ -9,7 +9,6 @@ import ru.practicum.main.category.dto.CategoryDto;
 import ru.practicum.main.category.mapper.CategoryMapper;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
-import ru.practicum.main.utility.Utility;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,35 +21,35 @@ import static ru.practicum.main.utility.Page.paged;
 @Slf4j
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
-    private final Utility utility;
+    private final CategoryVerifier verifier;
     private final CategoryMapper categoryMapper;
 
     @Override
     @Transactional
     public CategoryDto save(CategoryDto categoryDto) {
-        utility.checkAbilityCreateNameCategory(categoryDto.getName());
+        verifier.checkAbilityCreateNameCategory(categoryDto.getName());
         return categoryMapper.toDto(categoryRepository.save(categoryMapper.toEntity(categoryDto)));
     }
 
     @Override
     @Transactional
     public void removeById(Integer catId) {
-        utility.checkAbilityRemoveCategory(catId);
-        categoryRepository.deleteById(utility.checkCategory(catId).getId());
+        verifier.checkAbilityRemoveCategory(catId);
+        categoryRepository.deleteById(verifier.checkCategory(catId).getId());
     }
 
     @Override
     @Transactional
     public CategoryDto changeCategory(Integer catId, CategoryDto categoryDto) {
-        utility.checkAbilityChangeNameCategory(categoryDto.getName(), catId);
-        Category cat = utility.checkCategory(catId);
+        verifier.checkAbilityChangeNameCategory(categoryDto.getName(), catId);
+        Category cat = verifier.checkCategory(catId);
         cat.setName(categoryDto.getName());
         return categoryMapper.toDto(categoryRepository.save(cat));
     }
 
     @Override
     public CategoryDto getCategoriesById(Integer catId) {
-        return categoryMapper.toDto(utility.checkCategory(catId));
+        return categoryMapper.toDto(verifier.checkCategory(catId));
     }
 
     @Override
@@ -59,5 +58,10 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findAll(page).stream()
                 .map(categoryMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Category checkCategory(Integer catId) {
+        return verifier.checkCategory(catId);
     }
 }
