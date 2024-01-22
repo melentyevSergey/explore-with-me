@@ -20,12 +20,12 @@ public class CompilationVerifier {
     private final CompilationRepository repository;
     private final EventVerifier eventVerifier;
 
-    Compilation checkCompilation(Integer compilationId) {
+    public Compilation checkCompilation(Integer compilationId) {
         return repository.findById(compilationId).orElseThrow(() ->
                 new NotFoundException(String.format("Подборка с идентификатором =%d не найдена.", compilationId)));
     }
 
-    List<Event> checkEvents(List<Integer> eventIds) {
+    public List<Event> checkEvents(List<Integer> eventIds) {
         return eventVerifier.checkEvents(eventIds);
     }
 }

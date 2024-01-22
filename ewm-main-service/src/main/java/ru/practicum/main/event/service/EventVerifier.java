@@ -53,16 +53,16 @@ public class EventVerifier {
         }
     }
 
-    Category checkCategory(Integer catId) {
+    public Category checkCategory(Integer catId) {
         return categoryRepository.findById(catId).orElseThrow(() ->
                 new NotFoundException(String.format("Категория с идентификатором =%d не найдена", catId)));
     }
 
-    User checkUser(Integer userId) {
+    public User checkUser(Integer userId) {
         return userVerifier.checkUser(userId);
     }
 
-    LocalDateTime validTimePublication(LocalDateTime createdOn, LocalDateTime eventDate, Integer difference) {
+    public LocalDateTime validTimePublication(LocalDateTime createdOn, LocalDateTime eventDate, Integer difference) {
         if (Duration.between(createdOn, eventDate).toMinutes() < Duration.ofHours(difference).toMinutes()) {
             throw new ValidTimeException(String.format("Обратите внимание: дата и время, на которые намечено событие," +
                     " не может быть раньше, чем через =%d час/часа от текущего момента", difference));
@@ -70,7 +70,7 @@ public class EventVerifier {
         return createdOn;
     }
 
-     LocalDateTime validTimeEventDate(LocalDateTime publishedOn, LocalDateTime eventDate, Integer difference) {
+    public LocalDateTime validTimeEventDate(LocalDateTime publishedOn, LocalDateTime eventDate, Integer difference) {
         if (eventDate.isBefore(publishedOn)) {
             throw new ValidTimeException("Обратите внимание: дата и время, на которые намечено событие," +
                     " не может быть в прошлом");
@@ -82,7 +82,7 @@ public class EventVerifier {
         return eventDate;
     }
 
-    LocalDateTime validTimeCreatedOn(LocalDateTime createdOn, LocalDateTime eventDate, Integer difference) {
+    public LocalDateTime validTimeCreatedOn(LocalDateTime createdOn, LocalDateTime eventDate, Integer difference) {
         if (eventDate.isBefore(createdOn)) {
             throw new ValidTimeException("Обратите внимание: дата и время, на которые намечено событие," +
                     " не может быть в прошлом");

@@ -24,7 +24,7 @@ public class CommentVerifier {
     private final UserVerifier userVerifier;
     private final EventVerifier eventVerifier;
 
-    Boolean checkAuthorship(Integer commentId, Integer authorId, String message) {
+    public Boolean checkAuthorship(Integer commentId, Integer authorId, String message) {
         if (Objects.equals(checkComment(commentId).getAuthor().getId(), checkUser(authorId).getId())) {
             return true;
         } else {
@@ -32,18 +32,16 @@ public class CommentVerifier {
         }
     }
 
-    Comment checkComment(Integer commentId) {
+    public Comment checkComment(Integer commentId) {
         return repository.findById(commentId).orElseThrow(() ->
                 new NotFoundException(String.format("Комментарий с идентификатором =%d не найден", commentId)));
     }
 
-    User checkUser(Integer userId) {
+    public User checkUser(Integer userId) {
         return userVerifier.checkUser(userId);
     }
 
-    Event checkPublishedEvent(Integer eventId) {
+    public Event checkPublishedEvent(Integer eventId) {
         return eventVerifier.checkPublishedEvent(eventId);
     }
-
-
 }

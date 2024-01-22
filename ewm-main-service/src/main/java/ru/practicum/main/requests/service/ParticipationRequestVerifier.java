@@ -31,7 +31,7 @@ public class ParticipationRequestVerifier {
                 new NotFoundException("Запрос не найден или недоступен"));
     }
 
-    User checkUser(Integer userId) {
+    public User checkUser(Integer userId) {
         return userVerifier.checkUser(userId);
     }
 

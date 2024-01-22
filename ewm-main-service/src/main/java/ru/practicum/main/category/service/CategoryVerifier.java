@@ -23,13 +23,13 @@ public class CategoryVerifier {
                 new NotFoundException(String.format("Категория с идентификатором =%d не найдена", catId)));
     }
 
-    void checkAbilityCreateNameCategory(String name) {
+    public void checkAbilityCreateNameCategory(String name) {
         if (!categoryRepository.findCategoryByName(name).isEmpty()) {
             throw new ConflictException("Данное название категории уже занято!");
         }
     }
 
-    void checkAbilityChangeNameCategory(String name, Integer catId) {
+    public void checkAbilityChangeNameCategory(String name, Integer catId) {
         for (Category cat : categoryRepository.findCategoryByName(name)) {
             if (!cat.getId().equals(catId)) {
                 throw new ConflictException("Данное название категории уже занято!");
@@ -37,7 +37,7 @@ public class CategoryVerifier {
         }
     }
 
-    void checkAbilityRemoveCategory(Integer catId) {
+    public void checkAbilityRemoveCategory(Integer catId) {
         eventVerifier.checkAbilityRemoveCategory(catId);
     }
 }
